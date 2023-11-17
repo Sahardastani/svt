@@ -20,32 +20,28 @@ import torch.distributed as dist
 import torch.utils.data
 from torch import nn
 
-from datasets.hmdb51 import HMDB51
 from datasets.ucf101 import UCF101
-from models import get_vit_base_patch16_224
 from utils import utils
 from utils.parser import load_config
+
+from torchvision.models.video import r2plus1d_18
+
 
 
 def extract_feature_pipeline(args):
     # ============ preparing data ... ============
     config = load_config(args)
-    # config.DATA.PATH_TO_DATA_DIR = f"{os.path.expanduser('~')}/repo/mmaction2/data/{args.dataset}/knn_splits"
-    # config.DATA.PATH_PREFIX = f"{os.path.expanduser('~')}/repo/mmaction2/data/{args.dataset}/videos"
     config.TEST.NUM_SPATIAL_CROPS = 1
     if args.dataset == "ucf101":
         dataset_train = UCFReturnIndexDataset(cfg=config, mode="train", num_retries=10)
         dataset_val = UCFReturnIndexDataset(cfg=config, mode="val", num_retries=10)
-    elif args.dataset == "hmdb51":
-        dataset_train = HMDBReturnIndexDataset(cfg=config, mode="train", num_retries=10)
-        dataset_val = HMDBReturnIndexDataset(cfg=config, mode="val", num_retries=10)
     else:
         raise NotImplementedError(f"invalid dataset: {args.dataset}")
 
-    sampler = torch.utils.data.DistributedSampler(dataset_train, shuffle=False)
+    # sampler = torch.utils.data.DistributedSampler(dataset_train, shuffle=False)
     data_loader_train = torch.utils.data.DataLoader(
         dataset_train,
-        sampler=sampler,
+        # sampler=sampler,
         batch_size=args.batch_size_per_gpu,
         num_workers=args.num_workers,
         pin_memory=True,
@@ -61,24 +57,27 @@ def extract_feature_pipeline(args):
     print(f"Data loaded with {len(dataset_train)} train and {len(dataset_val)} val imgs.")
 
     # ============ building network ... ============
-    model = get_vit_base_patch16_224(cfg=config, no_head=True)
+    # model = get_vit_base_patch16_224(cfg=config, no_head=True)
+    model = r2plus1d_18()
     ckpt = torch.load(args.pretrained_weights)
     # select_ckpt = "teacher"
     renamed_checkpoint = {x[len("backbone."):]: y for x, y in ckpt.items() if x.startswith("backbone.")}
+    
+
+    
     msg = model.load_state_dict(renamed_checkpoint, strict=False)
     print(f"Loaded model with msg: {msg}")
     model.cuda()
     model.eval()
-
     # ============ extract features ... ============
     print("Extracting features for train set...")
     train_features = extract_features(model, data_loader_train)
     print("Extracting features for val set...")
     test_features = extract_features(model, data_loader_val)
 
-    if utils.get_rank() == 0:
-        train_features = nn.functional.normalize(train_features, dim=1, p=2)
-        test_features = nn.functional.normalize(test_features, dim=1, p=2)
+    # if utils.get_rank() == 0:
+    train_features = nn.functional.normalize(train_features, dim=1, p=2)
+    test_features = nn.functional.normalize(test_features, dim=1, p=2)
 
     train_labels = torch.tensor([s for s in dataset_train._labels]).long()
     test_labels = torch.tensor([s for s in dataset_val._labels]).long()
@@ -89,7 +88,6 @@ def extract_feature_pipeline(args):
         torch.save(train_labels.cpu(), os.path.join(args.dump_features, "trainlabels.pth"))
         torch.save(test_labels.cpu(), os.path.join(args.dump_features, "testlabels.pth"))
     return train_features, test_features, train_labels, test_labels
-
 
 @torch.no_grad()
 def extract_features(model, data_loader):
@@ -128,7 +126,6 @@ def extract_features(model, data_loader):
 
         # update storage feature matrix
         if dist.get_rank() == 0:
-            # if args.use_cuda:
             features.index_copy_(0, index_all, torch.cat(output_l))
             # else:
             #     features.index_copy_(0, index_all.cpu(), torch.cat(output_l).cpu())
@@ -184,11 +181,6 @@ class UCFReturnIndexDataset(UCF101):
         return img, idx
 
 
-class HMDBReturnIndexDataset(HMDB51):
-    def __getitem__(self, idx):
-        img, _, _, _ = super(HMDBReturnIndexDataset, self).__getitem__(idx)
-        return img, idx
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Evaluation with weighted k-NN on ImageNet')
     parser.add_argument('--batch_size_per_gpu', default=128, type=int, help='Per-GPU batch-size')
@@ -220,7 +212,6 @@ if __name__ == '__main__':
     parser.add_argument("--opts", help="See utils/defaults.py for all options", default=None, nargs=argparse.REMAINDER)
 
     args = parser.parse_args()
-
     utils.init_distributed_mode(args)
     print("git:\n  {}\n".format(utils.get_sha()))
     print("\n".join("%s: %s" % (k, str(v)) for k, v in sorted(dict(vars(args)).items())))
@@ -241,7 +232,6 @@ if __name__ == '__main__':
             test_features = test_features.cuda()
             train_labels = train_labels.cuda()
             test_labels = test_labels.cuda()
-
         print("Features are ready!\nStart the k-NN classification.")
         for k in args.nb_knn:
             top1, top5 = knn_classifier(train_features, train_labels,

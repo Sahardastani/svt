@@ -1,0 +1,12 @@
+Constructing Kinetics train...
+Constructing kinetics dataloader (size: 20) from /home/as89480@ens.ad.etsmtl.ca/projects/SSL_video/dataset/k400/annotations/train.csv
+[2023-11-05 05:40:13,451][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 1
+[2023-11-05 05:40:13,452][torch.distributed.distributed_c10d][INFO] - Rank 1: Completed store-based barrier for key:store_based_barrier_key:1 with 2 nodes.
+Constructing Kinetics train...
+Constructing kinetics dataloader (size: 20) from /home/as89480@ens.ad.etsmtl.ca/projects/SSL_video/dataset/k400/annotations/train.csv
+[2023-11-05 05:40:13,451][torch.distributed.distributed_c10d][INFO] - Added key: store_based_barrier_key:1 to store for rank: 0
+[2023-11-05 05:40:13,452][torch.distributed.distributed_c10d][INFO] - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 2 nodes.
+[2023-11-05 05:40:15,750][libav.mov,mp4,m4a,3gp,3g2,mj2][ERROR] - moov atom not found
+[2023-11-05 05:40:15,856][libav.mov,mp4,m4a,3gp,3g2,mj2][ERROR] - moov atom not found
+Training: 0it [00:00, ?it/s]Training:   0%|          | 0/1 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/1 [00:00<?, ?it/s] [2023-11-05 05:40:16,811][libav.mov,mp4,m4a,3gp,3g2,mj2][ERROR] - moov atom not found
+Epoch 0: 100%|██████████| 1/1 [00:03<00:00,  3.81s/it]Epoch 0: 100%|██████████| 1/1 [00:03<00:00,  3.81s/it, v_num=azva]Epoch 0: 100%|██████████| 1/1 [00:03<00:00,  3.81s/it, v_num=azva]Epoch 0: 100%|██████████| 1/1 [00:06<00:00,  6.80s/it, v_num=azva]

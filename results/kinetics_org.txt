@@ -1,0 +1,52 @@
+| distributed init (rank 0): env://
+git:
+  sha: f69e0048f2ed38f5398ee6d500abf50cbb8779f0, status: has uncommited changes, branch: master
+
+arch: vit_base
+batch_size_per_gpu: 128
+cfg_file: models/configs/Kinetics/TimeSformer_divST_8x32_224.yaml
+checkpoint_key: teacher
+data_path: /path/to/imagenet/
+dataset: ucf101
+dist_url: env://
+dump_features: None
+gpu: 0
+load_features: None
+local_rank: 0
+nb_knn: [5]
+num_workers: 4
+opts: ['DATA.PATH_TO_DATA_DIR', '/home/as89480@ens.ad.etsmtl.ca/projects/data/ucf101/knn_splits', 'DATA.PATH_PREFIX', '/home/as89480@ens.ad.etsmtl.ca/projects/data/ucf101/videos']
+patch_size: 16
+pretrained_weights: /home/as89480@ens.ad.etsmtl.ca/projects/svt/kinetics400_vitb_ssl.pth
+rank: 0
+temperature: 0.07
+use_cuda: True
+world_size: 1
+Constructing UCF101 train...
+Constructing UCF101 dataloader (size: 9537) from /home/as89480@ens.ad.etsmtl.ca/projects/data/ucf101/knn_splits/ucf101_train_split_1_videos.txt
+Constructing UCF101 val...
+Constructing UCF101 dataloader (size: 3783) from /home/as89480@ens.ad.etsmtl.ca/projects/data/ucf101/knn_splits/ucf101_val_split_1_videos.txt
+Data loaded with 9537 train and 3783 val imgs.
+Loaded model with msg: <All keys matched successfully>
+Extracting features for train set...
+Storing features into tensor of shape torch.Size([9537, 768])
+  [ 0/75]  eta: 0:18:29    time: 14.799821  data: 10.078167  max mem: 10481
+  [10/75]  eta: 0:03:42    time: 3.426164  data: 0.916353  max mem: 10510
+  [20/75]  eta: 0:02:54    time: 2.583849  data: 0.000154  max mem: 10510
+  [30/75]  eta: 0:02:19    time: 2.908929  data: 0.000124  max mem: 10510
+  [40/75]  eta: 0:01:47    time: 2.963885  data: 0.000113  max mem: 10510
+  [50/75]  eta: 0:01:16    time: 3.004704  data: 0.000112  max mem: 10510
+  [60/75]  eta: 0:00:45    time: 3.030745  data: 0.000110  max mem: 10510
+  [70/75]  eta: 0:00:15    time: 3.047488  data: 0.000107  max mem: 10510
+  [74/75]  eta: 0:00:03    time: 3.194240  data: 0.000103  max mem: 10510
+ Total time: 0:03:52 (3.095845 s / it)
+Extracting features for val set...
+Storing features into tensor of shape torch.Size([3783, 768])
+  [ 0/30]  eta: 0:05:33    time: 11.122950  data: 8.139268  max mem: 10510
+  [10/30]  eta: 0:01:05    time: 3.267102  data: 0.859645  max mem: 10519
+  [20/30]  eta: 0:00:31    time: 2.760249  data: 0.065906  max mem: 10519
+  [29/30]  eta: 0:00:03    time: 3.187619  data: 0.000116  max mem: 10519
+ Total time: 0:01:36 (3.230221 s / it)
+Features are ready!
+Start the k-NN classification.
+5-NN classifier result: Top1: 85.43484007401533, Top5: 92.20195611948189

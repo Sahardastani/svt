@@ -1,17 +1,14 @@
 #!/bin/bash
 
-PROJECT_PATH="$HOME/repo/svt"
-CHECKPOINT="path/to/checkpoint.pth"
+PROJECT_PATH="$HOME/projects/svt"
+CHECKPOINT="$PROJECT_PATH/checkpoints_pretraining/gdt/gdt_K400.pth"
 DATASET="ucf101"
-DATA_PATH="${HOME}/repo/mmaction2/data/${DATASET}"
+DATA_PATH="${HOME}/projects/data/${DATASET}"
 
 cd "$PROJECT_PATH" || exit
 
 export CUDA_VISIBLE_DEVICES=0
-python -m torch.distributed.launch \
-  --nproc_per_node=1 \
-  --master_port="$RANDOM" \
-  eval_knn.py \
+torchrun eval_knn.py \
   --arch "vit_base" \
   --pretrained_weights "$CHECKPOINT" \
   --batch_size_per_gpu 128 \
@@ -21,4 +18,4 @@ python -m torch.distributed.launch \
   --dataset "$DATASET" \
   --opts \
   DATA.PATH_TO_DATA_DIR "${DATA_PATH}/knn_splits" \
-  DATA.PATH_PREFIX f"${DATA_PATH}/videos"
+  DATA.PATH_PREFIX "${DATA_PATH}/videos"
